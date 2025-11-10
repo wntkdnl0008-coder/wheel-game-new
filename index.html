@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>랜덤 돌림판</title>
+<style>
+  body { text-align: center; font-family: 'Pretendard', sans-serif; background: #f7f7f7; }
+  .container { position: relative; display: inline-block; }
+  canvas { margin-top: 40px; transition: transform 4s ease-out; }
+  .pointer {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0; height: 0;
+    border-left: 20px solid transparent;
+    border-right: 20px solid transparent;
+    border-bottom: 30px solid red;
+  }
+  button { margin-top: 20px; padding: 12px 24px; font-size: 16px; border: none; border-radius: 8px; background: #4CAF50; color: white; cursor: pointer; }
+  button:hover { background: #45a049; }
+</style>
+</head>
+<body>
+  <h2>🎯 랜덤 돌림판</h2>
+  <div class="container">
+    <div class="pointer"></div>
+    <canvas id="wheel" width="400" height="400"></canvas>
+  </div><br>
+  <button onclick="spin()">돌리기</button>
+
+  <script>
+    const canvas = document.getElementById('wheel');
+    const ctx = canvas.getContext('2d');
+    const prizes = [
+      { name: '공책', weight: 30, color: '#f4a261' },
+      { name: '필기도구', weight: 10, color: '#2a9d8f' },
+      { name: '핸드크림', weight: 20, color: '#e76f51' },
+      { name: '참가상', weight: 40, color: '#264653' }
+    ];
+
+    const totalWeight = prizes.reduce((sum, p) => sum + p.weight, 0);
+    const center = canvas.width / 2;
+
+    function drawWheel(rotation = 0) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      let startAngle = rotation;
+      prizes.forEach(p => {
+        const sliceAngle = (p.weight / totalWeight) * 2 * Math.PI;
+        ctx.beginPath();
+        ctx.moveTo(center, center);
+        ctx.arc(center, center, center - 10, startAngle, startAngle + sliceAngle);
+        ctx.fillStyle = p.color;
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.save();
+        ctx.translate(center, center);
+        ctx.rotate(startAngle + sliceAngle / 2);
+        ctx.textAlign = 'right';
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 18px Pretendard';
+        ctx.fillText(p.name, center - 20, 10);
+        ctx.restore();
+
+        startAngle += sliceAngle;
+      });
+    }
+
+    drawWheel();
+
+    function spin() {
+      const random = Math.random() * totalWeight;
+      let cumulative = 0;
+      let selected;
+
+      for (let p of prizes) {
+        cumulative += p.weight;
+        if (random <= cumulative) {
+          selected = p.name;
+          break;
+        }
+      }
+
+      const spins = Math.floor(Math.random() * 4) + 4; // 4~7바퀴 회전
+      const targetAngle = Math.random() * 360;
+      const rotateTo = (spins * 360) + targetAngle;
+
+      canvas.style.transform = `rotate(${rotateTo}deg)`;
+
+      setTimeout(() => {
+        alert('결과: ' + selected + ' 당첨! 🎉');
+      }, 4000);
+    }
+  </script>
+</body>
+</html>
